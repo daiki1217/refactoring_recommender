@@ -12,9 +12,9 @@ def collect_non_refactoring_method(historage, num_of_methods):
 
     while len(non_refactoring_methods) < num_of_methods:
         random_commit = random.choice(commits)
-        if not random_commit.parents:
+        if len(random_commit.parents) >= 2 or not random_commit.parents:
             continue
-        p = random.choice(random_commit.parents)
+        p = random_commit.parents[0]
         method_candidates = []
         for f in p.tree.traverse():
             if f.type == 'blob':
@@ -42,4 +42,3 @@ if __name__ == '__main__':
     historage = Repo(args.historage_dir)
     num_of_methods = int(args.num_of_methods)
     print collect_non_refactoring_method(historage, num_of_methods)
-
