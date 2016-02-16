@@ -3,6 +3,7 @@ from kenja.historage import *
 import random
 from kenja.detection.extract_method import *
 
+
 def collect_non_refactoring_method(historage, num_of_methods):
     non_refactoring_methods = []
 
@@ -22,8 +23,8 @@ def collect_non_refactoring_method(historage, num_of_methods):
                     assert f.path.split('/')[0].endswith('.java')
                     method_candidates.append(f.path)
 
-        non_refactoring_methods.append(random.choice(method_candidates))
-        extract_method_information = detect_extract_method_from_commit(p, random_commit, historage)
+        non_refactoring_methods.append((p, random.choice(method_candidates)))
+        extract_method_information = detect_extract_method_from_commit(p, random_commit)
         if any((e['extracted_method_path'] == non_refactoring_methods[-1] for e in extract_method_information)):
             non_refactoring_methods.pop(-1)
             break
