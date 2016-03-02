@@ -1,12 +1,23 @@
 import csv
 import sys
-from kenja.historage import *
+from kenja.historage import get_method, is_method_body, get_constructor, get_class
+from kenja.detection.extract_method import get_method_information
 from collect_non_refactoring_method import *
 from git.repo import Repo
 
 
 dataSet = []
 Id = 1
+
+
+def get_package(path, commit):
+    split_path = path.split('/')
+    path = '/'.join((split_path[0], 'package'))
+    try:
+        package_blob = commit.tree / path
+    except KeyError:
+        return None
+    return package_blob.data_stream.read()
 
 
 def shape_refactored_methods(data):
@@ -32,7 +43,7 @@ def shape_refactored_methods(data):
     return result
 
 
-def shape_non_refactored_methods(data):
+def shape_non_refactored_methods(historage, data):
     result = []
     global Id
 
@@ -41,7 +52,7 @@ def shape_non_refactored_methods(data):
             'Id': Id,
             'method': get_method_information(get_method(n[1]) if is_method_body(n[1]) else get_constructor(n[1]))[0],
             'class': get_class(n[1]),
-            'package': get_package(n[1], n[0]),
+            'package': get_package(n[1], historage.commit(n[0])).rstrip(),
             'commit': n[0].hexsha,
             'category': 0
         }
@@ -79,5 +90,5 @@ if __name__ == '__main__':
 
     historage = Repo(args.historage_dir)
     dataSet.extend(shape_refactored_methods(args.refactored_methods))
-    dataSet.extend(shape_non_refactored_methods(collect_non_refactoring_method(historage, len(dataSet))))
+    dataSet.extend(shape_non_refactored_methods(historage, collect_non_refactoring_method(historage, len(dataSet))))
     print_csv(args.output_file)

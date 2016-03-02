@@ -52,14 +52,14 @@ def get_metrics_from_xml(metrics, method_information):
         for method_metric_name in method_metric_names:
             if method_metric_name == metric.get('id'):
                 for v in metric.findAll('value'):
-                    if class_name == v.get('source').split('.')[0] and method_name == v.get('name'):
+                    if package_name == v.get('package') and class_name == v.get('source').split('.')[0] and method_name == v.get('name'):
                         method_metrics[method_metric_name] = v.get('value')
                         break
 
         for class_metric_name in class_metric_names:
             if class_metric_name == metric.get('id'):
                 for v in metric.findAll('value'):
-                    if class_name == v.get('source').split('.')[0]:
+                    if package_name == v.get('package') and class_name == v.get('source').split('.')[0]:
                         method_metrics[class_metric_name] = v.get('value')
                         break
 
