@@ -52,7 +52,7 @@ def shape_non_refactored_methods(historage, data):
             'Id': Id,
             'method': get_method_information(get_method(n[1]) if is_method_body(n[1]) else get_constructor(n[1]))[0],
             'class': get_class(n[1]),
-            'package': get_package(n[1], historage.commit(n[0])).rstrip(),
+            'package': get_package(n[1], historage.commit(n[0])).rstrip() if get_package(n[1], historage.commit(n[0])) != None else get_package(n[1], historage.commit(n[0])),
             'commit': n[0].hexsha,
             'category': 0
         }
