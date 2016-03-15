@@ -30,10 +30,10 @@ def shape_refactored_methods(data):
     for r in refactored_methods:
         refactored_method_data = {
             'Id': Id,
-            'method': r['extracted_method'],
+            'method': get_method_information(r['target_method'])[0],
             'class': r['target_class'],
-            'package': r['b_package'].rstrip(),
-            'commit': r['b_commit'],
+            'package': r['a_package'].rstrip(),
+            'commit': r['a_commit'],
             'category': 1
         }
         Id += 1
@@ -50,7 +50,7 @@ def shape_non_refactored_methods(historage, data):
     for n in data:
         non_refactored_method_data = {
             'Id': Id,
-            'method': get_method_information(get_method(n[1]) if is_method_body(n[1]) else get_constructor(n[1]))[0],
+            'method': get_method_information(get_method(n[1]))[0] if is_method_body(n[1]) else get_method_information(get_constructor(n[1]))[0],
             'class': get_class(n[1]),
             'package': get_package(n[1], historage.commit(n[0])).rstrip() if get_package(n[1], historage.commit(n[0])) != None else get_package(n[1], historage.commit(n[0])),
             'commit': n[0].hexsha,
@@ -59,6 +59,29 @@ def shape_non_refactored_methods(historage, data):
         Id += 1
         result.append(non_refactored_method_data)
 
+    return result
+
+
+def shape_inline_refactored_methods(data):
+    result = []
+    global Id
+
+    csv_file = open(data, 'r')
+    inline_refactored_methods = csv.DictReader(csv_file)
+
+    for i in inline_refactored_methods:
+        inline_refactored_method_data = {
+            'Id': Id,
+            'method': get_method_information(i['target_method'])[0],
+            'class': i['target_class'],
+            'package': i['b_package'].rstrip(),
+            'commit': i['b_commit'],
+            'category': 2
+        }
+        Id += 1
+        result.append(inline_refactored_method_data)
+
+    csv_file.close()
     return result
 
 
@@ -84,11 +107,17 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='DataSet Maker')
     parser.add_argument('historage_dir', help='path of historage repository dir')
+    parser.add_argument('-i', '--inline', help='path of inline methods csv file')
     parser.add_argument('refactored_methods', help='path of csv file which kenja output')
     parser.add_argument('output_file', help='path of output file')
     args = parser.parse_args()
 
     historage = Repo(args.historage_dir)
     dataSet.extend(shape_refactored_methods(args.refactored_methods))
-    dataSet.extend(shape_non_refactored_methods(historage, collect_non_refactoring_method(historage, len(dataSet))))
+
+    if args.inline:
+        dataSet.extend(shape_inline_refactored_methods(args.inline))
+    else:
+        dataSet.extend(shape_non_refactored_methods(historage, collect_non_refactoring_method(historage, len(dataSet))))
+
     print_csv(args.output_file)
