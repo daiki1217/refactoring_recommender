@@ -13,23 +13,12 @@ method_metric_names = ['PAR', 'VG', 'NBD', 'MLOC']
 class_metric_names = ['WMC', 'DIT', 'LCOM', 'NSC']
 
 
-def generate_feature_vector(historage, dataset_csv, metrics, args_jedit_tag_info):
+def generate_feature_vector(dataset_csv, metrics):
     result = []
 
     for d in dataset:
-        min = 10000000000
-        jedit_tag_info_csv = open(args_jedit_tag_info, 'r')
-        jedit_tag_info = csv.DictReader(jedit_tag_info_csv)
-        for tag in jedit_tag_info:
-            tagTime = datetime.datetime.strptime(tag['commit_date'], '%Y/%m/%d')
-            tagTime_unix = int(time.mktime(tagTime.timetuple()))
-            if fabs(historage.commit(d['commit']).committed_date - tagTime_unix) < min:
-                min = fabs(historage.commit(d['commit']).committed_date - tagTime_unix)
-                tag_candidate = tag['tag']
-        jedit_tag_info_csv.close()
-
         for f in os.listdir(metrics):
-            if tag_candidate in f:
+            if f.startswith(d['commit']):
                 xml = open(metrics + f, 'r')
                 result.append(get_metrics_from_xml(BeautifulStoneSoup(xml.read()), d))
                 xml.close()
@@ -92,16 +81,13 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description='Feature Vector Generater')
-    parser.add_argument('historage_dir', help='path of historage repository dir')
     parser.add_argument('dataset', help='path of dataset which include refactored_methods and non_refactored_methods')
     parser.add_argument('metrics', help='path of metrics files')
-    parser.add_argument('jedit_tag_info', help='path of jedit_tag_info.csv')
     parser.add_argument('output_file', help='path of output file')
     args = parser.parse_args()
 
-    historage = Repo(args.historage_dir)
     dataset_csv = open(args.dataset, 'r')
     dataset = csv.DictReader(dataset_csv)
-    print_csv(generate_feature_vector(historage, dataset, args.metrics, args.jedit_tag_info), args.output_file)
+    print_csv(generate_feature_vector(dataset, args.metrics), args.output_file)
 
     dataset_csv.close()

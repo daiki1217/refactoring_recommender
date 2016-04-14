@@ -113,11 +113,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     historage = Repo(args.historage_dir)
-    dataSet.extend(shape_refactored_methods(args.refactored_methods))
 
     if args.inline:
         dataSet.extend(shape_inline_refactored_methods(args.inline))
     else:
+        dataSet.extend(shape_refactored_methods(args.refactored_methods))
         dataSet.extend(shape_non_refactored_methods(historage, collect_non_refactoring_method(historage, len(dataSet))))
 
     print_csv(args.output_file)
